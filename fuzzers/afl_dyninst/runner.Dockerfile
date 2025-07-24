@@ -1,0 +1,13 @@
+FROM gcr.io/fuzzbench/base-image
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && apt install -y libtbb2
+ENV DYNINSTAPI_RT_LIB /usr/local/lib/libdyninstAPI_RT.so
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib/"
+
+ENV AFL_MAP_SIZE=65536
+ENV AFL_SKIP_CPUFREQ=1
+ENV AFL_SKIP_BIN_CHECK=1
+ENV AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
+ENV AFL_TESTCACHE_SIZE=2
