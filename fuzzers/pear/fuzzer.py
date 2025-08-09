@@ -1,6 +1,7 @@
 ''' Integration for pear (experiments) '''
 
 import os
+import json
 import shutil
 import subprocess
 
@@ -8,6 +9,7 @@ from pathlib import Path
 
 from fuzzers import utils
 
+DEBUG = True
 IR_CACHE = '/ir_cache'
 PEAR_OUT = '/pear_out'
 
@@ -41,7 +43,7 @@ def get_target_binary(build_dir):
 
 def run_pear(cmd, target_binary):
     # Run PeAR
-    os.chdir("/PeAR")
+    os.chdir('/PeAR')
     print(f'Rewriting with cmd: {cmd}')
     r = os.system(cmd)
     assert r == 0, 'Rewrite failed!'
@@ -51,9 +53,52 @@ def run_pear(cmd, target_binary):
     shutil.copy(rewritten, target_binary)
     print(f'Copied instrumented binary to {target_binary}.')
 
+def gen_hints_for_special_cases(benchmark, target_binary):
+    # Add hints to help edge cases
+    hints_out = Path(PEAR_OUT) / 'hints.csv'
+    base_ir = Path(PEAR_OUT) / 'base.gtirb'
+
+    if benchmark not in ['libjpeg-turbo_libjpeg_turbo_fuzzer',
+                         'curl_curl_fuzzer_http']:
+        return
+
+    # First, run ddisasm on base binary
+    cmd = ['ddisasm', str(target_binary), '--ir', str(base_ir)]
+    print(f"Running: {' '.join(cmd)}")
+    subprocess.run(cmd, check=True)
+
+    # Cmd to generate hints
+    cmd = [
+        'python3.9', '/PeAR/pear/tools/gen_hints.py',
+        '--ir', str(base_ir),
+        '--out', str(hints_out)
+    ]
+    if benchmark == 'curl_curl_fuzzer_http':
+        # Curl has data tables that ddisasm incorrectly finds instructions in.
+        cmd += ['--data-symbols', json.dumps({
+            'K256': 256, 'K256_shaext': 256, 'K_XX_XX': 176
+        })]
+        cmd += ['--data-between-funcs', json.dumps({
+            'AES_cbc_encrypt': '_vpaes_encrypt_core',
+            'Camellia_Ekeygen': 'Camellia_cbc_encrypt'
+        })]
+    elif benchmark == 'libjpeg-turbo_libjpeg_turbo_fuzzer':
+        # Libjpeg contains a constant that ddisasm incorrectly disassembles as
+        # a symbolic operand (it looks like an address)
+        find_fault_ins = f"objdump -M intel -d {target_binary} 2>/dev/null " + r"""| grep -A 500 build_rgb_y_table.*: | awk '/cmp/ {print "0x"$1; exit}'"""
+        print(f"Running: {find_fault_ins}")
+        faulty_addr = subprocess.check_output(find_fault_ins, shell=True, text=True).strip()[:-1]
+        print(f"Found faulty address: {faulty_addr}")
+        cmd += ['--not-symbolic-operands', json.dumps({faulty_addr: 1})]
+
+    print(f"Running: {' '.join(cmd)}")
+    subprocess.run(cmd, check=True)
+    return hints_out
+
 def build():
     ''' Build benchmark. '''
     build_dir = os.environ['OUT']
+    create_pear_dirs()
 
     # Move fuzzer to build directory
     shutil.copy('/afl/afl-fuzz', build_dir)
@@ -61,13 +106,23 @@ def build():
     # Build target (no sanitizers)
     build_no_instrumentation('/PeAR/utils/pear_driver/libPeARStdinDriver.a')
     target_binary = get_target_binary(build_dir)
+    if DEBUG:
+        os.system(f"cp -r {target_binary} {target_binary}.orig")
+
+    # Handle benchmarks that need hints
+    current_benchmark = os.environ.get('benchmark') or os.environ.get('BENCHMARK')
+    hint_file = gen_hints_for_special_cases(current_benchmark, target_binary)
+    hint_arg = ''
+    if hint_file:
+        hint_arg = f'--hints {hint_file}'
 
     # Run PeAR
-    create_pear_dirs()
     target_func = 'pear_driver_stdin_input'
-    cmd = f"python3.9 -m pear --ir-cache {IR_CACHE} --input-binary {target_binary} --output-dir {PEAR_OUT} --gen-binary AFL++ --deferred-fuzz-function {target_func}"
+    cmd = f"python3.9 -m pear --ir-cache {IR_CACHE} --input-binary {target_binary} --output-dir {PEAR_OUT} {hint_arg} --gen-binary --ignore-nonempty AFL++ --deferred-fuzz-function {target_func}"
     run_pear(cmd, target_binary)
-    #delete_pear_dirs()
+    if DEBUG:
+        os.system('cp -r /pear_out /out/')
+        os.system('cp -r /ir_cache /out/')
 
 # Code copied from afl/fuzzer.py and aflplusplus/fuzzer.py
 def prepare_aflpp_fuzz_environment(input_corpus):

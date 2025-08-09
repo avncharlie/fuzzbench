@@ -45,8 +45,11 @@ RUN cd /afl && \
 
 # Install PeAR 
 # Cache bust if there are updates
-# ADD "https://api.github.com/repos/avncharlie/PeAR/commits?per_page=1&sha=fuzzbench" latest_commit
+ADD "https://api.github.com/repos/avncharlie/PeAR/commits?per_page=1&sha=fuzzbench" latest_commit
 RUN git clone -b fuzzbench https://github.com/avncharlie/PeAR.git /PeAR
 RUN python3.9 -m pip install -r /PeAR/requirements.txt
 # Compile PeAR driver
 RUN cd /PeAR/utils/pear_driver && make
+
+# Add hint generation (for benchmarks that need hints)
+ADD gen_hints.py gen_hints.py
