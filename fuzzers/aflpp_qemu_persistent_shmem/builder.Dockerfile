@@ -27,11 +27,10 @@ RUN apt-get update && \
         ninja-build \
         libstdc++-$(gcc --version|head -n1|sed 's/\..*//'|sed 's/.* //')-dev
 
-
 # Download latest release of AFL++.
 RUN git clone https://github.com/AFLplusplus/AFLplusplus /afl && \
     cd /afl && \
-    git checkout tags/v4.31c 
+    git checkout tags/v4.32c 
 
 # Build afl++ without Python support as we don't need it.
 # Set AFL_NO_X86 to skip flaky tests.
@@ -41,8 +40,7 @@ RUN cd /afl && \
     cd qemu_mode && ./build_qemu_support.sh 
 
 # We user PeAR's driver, so download and build that
-RUN git clone -b fuzzbench https://github.com/avncharlie/PeAR.git /PeAR
-RUN cd /PeAR/ && git fetch && git reset --hard origin/fuzzbench
+RUN git clone https://github.com/avncharlie/PeAR.git /PeAR
 RUN cd /PeAR/utils/pear_driver && make
 
 # Build QEMU shmem hook

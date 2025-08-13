@@ -20,3 +20,8 @@ unsupported_fuzzers:
   - symcc_afl
   - symcc_afl_single
   - symcc_aflplusplus
+  - pear
+  - pear_persistent
+  - pear_persistent_shmem
+  - afl_dyninst
+  - e9afl

@@ -18,3 +18,4 @@ fuzz_target: fuzz_dtlsclient
 project: mbedtls
 unsupported_fuzzers:
   - klee
+  - e9afl

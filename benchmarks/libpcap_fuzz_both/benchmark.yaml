@@ -31,3 +31,4 @@ unsupported_fuzzers:
   - fuzzolic_aflplusplus_z3dict
   - afldd
   - aflpp_vs_dd
+  - e9afl

@@ -42,3 +42,5 @@ unsupported_fuzzers:
   - symqemu_aflplusplus
   - fuzzolic_aflplusplus_fuzzy
   - fuzzolic_aflplusplus_z3dict
+  - zafl
+  - e9afl

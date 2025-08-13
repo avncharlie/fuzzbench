@@ -22,3 +22,4 @@ unsupported_fuzzers:
   - symcc_aflplusplus
   - afldd
   - aflpp_vs_dd
+  - stochfuzz

@@ -24,7 +24,7 @@ RUN cd /afl && \
     PYTHON_INCLUDE=/ make
 
 # We user PeAR's driver, so download and build that
-RUN git clone -b fuzzbench https://github.com/avncharlie/PeAR.git /PeAR
+RUN git clone https://github.com/avncharlie/PeAR.git /PeAR
 RUN cd /PeAR/utils/pear_driver && make
 
 # ZAFL

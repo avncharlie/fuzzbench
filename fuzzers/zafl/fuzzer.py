@@ -1,4 +1,4 @@
-''' Integration for zafl (experiments) '''
+''' Integration for zafl '''
 
 import os
 import shutil

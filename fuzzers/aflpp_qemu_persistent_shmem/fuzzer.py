@@ -11,15 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Integration code for AFLplusplus fuzzer."""
+""" Integration code for AFLplusplus QEMU mode fuzzer """
 
 import os
 import shutil
 import subprocess
 
-from fuzzers.aflplusplus import fuzzer as aflplusplus_fuzzer
 from fuzzers.pear import fuzzer as pear_fuzzer
-
 
 def build():
     """Build benchmark."""

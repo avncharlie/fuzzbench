@@ -18,3 +18,5 @@ fuzz_target: ot-ip6-send-fuzzer
 project: openthread
 unsupported_fuzzers:
   - klee
+  - afl_dyninst
+  - e9afl

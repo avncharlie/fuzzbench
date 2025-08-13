@@ -100,7 +100,7 @@ RUN mkdir -p /out/afl-dyninst/lib && \
     cp /usr/local/lib/libdyninstAPI_RT.so /out/afl-dyninst/lib/
 
 # We user PeAR's driver, so download and build that
-RUN git clone -b fuzzbench https://github.com/avncharlie/PeAR.git /PeAR
+RUN git clone https://github.com/avncharlie/PeAR.git /PeAR
 RUN cd /PeAR/utils/pear_driver && make
 
 # Copy all generated packages to install on builder image (should only need afl-dyninst one though)

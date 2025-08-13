@@ -1,4 +1,4 @@
-''' Integration for pear (experiments) '''
+''' Integration for pear '''
 
 import os
 import json
@@ -9,7 +9,7 @@ from pathlib import Path
 
 from fuzzers import utils
 
-DEBUG = True
+DEBUG = False
 IR_CACHE = '/ir_cache'
 PEAR_OUT = '/pear_out'
 
@@ -127,7 +127,7 @@ def build():
 # Code copied from afl/fuzzer.py and aflplusplus/fuzzer.py
 def prepare_aflpp_fuzz_environment(input_corpus):
     # Tell AFL to not use its terminal UI so we get usable logs.
-    # os.environ['AFL_NO_UI'] = '1'
+    os.environ['AFL_NO_UI'] = '1'
     # Skip AFL's CPU frequency check (fails on Docker).
     os.environ['AFL_SKIP_CPUFREQ'] = '1'
     # No need to bind affinity to one core, Docker enforces 1 core usage.

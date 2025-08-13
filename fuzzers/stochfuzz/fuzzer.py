@@ -1,4 +1,4 @@
-''' Integration for e9afl (experiments) '''
+''' Integration for StochFuzz '''
 
 import os
 import time
